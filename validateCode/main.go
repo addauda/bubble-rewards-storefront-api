@@ -27,21 +27,24 @@ const expiration = time.Hour
 
 var client = &http.Client{}
 
-
-func GenerateCouponCodeQuery() (string) {
+func GenerateCouponCodeQuery() string {
 	return "SELECT redemptions_coupon.id, submissions.instagram_account, rewards.description, redemptions_coupon.status from public.redemptions_coupon join submissions on redemptions_coupon.submission_id = submissions.id join offers on submissions.offer_id = offers.id join rewards on offers.loyalty_reward_id = rewards.id WHERE code = $1 AND redemptions_coupon.status = 'PENDING' AND current_timestamp < redemptions_coupon.expire_at"
 }
 
-func GenerateInstantCodeQuery() (string) {
+func GenerateInstantAccountQuery() string {
 	return "SELECT submissions.id, submissions.instagram_account, rewards.description from submissions join offers on submissions.offer_id = offers.id join rewards on offers.instant_reward_id = rewards.id WHERE submissions.instagram_account = $1 AND submissions.status = 'ACCEPTED' AND current_timestamp < submissions.instant_reward_expire_at LIMIT 1"
 }
 
 // Handler is our lambda handler invoked by the `lambda.Start` function call
 func Handler(ctx context.Context, request events.APIGatewayProxyRequest) (Response, error) {
 
-	code := request.PathParameters["code"]
-	redemptionType := request.PathParameters["redemption_type"]
-	apiKey := request.PathParameters["api_key"]
+	code := request.QueryStringParameters["code"]
+	redemptionType := request.QueryStringParameters["redemption_type"]
+	apiKey := request.QueryStringParameters["api_key"]
+
+	log.Printf("Info: Request code %s", code)
+	log.Printf("Info: Request redemption type %s", redemptionType)
+	log.Printf("Info: Request API key %s", apiKey)
 
 	// Ensure all fields are not empty
 	if code != "" && redemptionType != "" && apiKey != "" {
@@ -52,8 +55,8 @@ func Handler(ctx context.Context, request events.APIGatewayProxyRequest) (Respon
 
 		// Connect to database
 		connStr := fmt.Sprintf("host=%s user=%s password=%s dbname=%s sslmode=disable",
-		os.Getenv("DB_HOST"), os.Getenv("DB_USER"), os.Getenv("DB_PASSWORD"), os.Getenv("DB_NAME"))
-		
+			os.Getenv("DB_HOST"), os.Getenv("DB_USER"), os.Getenv("DB_PASSWORD"), os.Getenv("DB_NAME"))
+
 		db, err := sql.Open("postgres", connStr)
 		if err != nil {
 			log.Printf("Error: %v", err)
@@ -104,7 +107,7 @@ func Handler(ctx context.Context, request events.APIGatewayProxyRequest) (Respon
 			var submissionID int
 			var instagramAccount string
 			var rewardDescription string
-			row := db.QueryRow(GenerateInstantCodeQuery(), code)
+			row := db.QueryRow(GenerateInstantAccountQuery(), code)
 			switch err = row.Scan(&submissionID, &instagramAccount, &rewardDescription); err {
 			case sql.ErrNoRows:
 				log.Printf("Error: Redemption code [%s] is INVALID", code)
@@ -123,7 +126,7 @@ func Handler(ctx context.Context, request events.APIGatewayProxyRequest) (Respon
 			}
 		} else {
 			log.Printf("Error: Invalid redemption type [%s]", redemptionType)
-			return Response{StatusCode: 401}, nil
+			return Response{StatusCode: 400}, nil
 		}
 	}
 
@@ -154,11 +157,11 @@ func (l *LocalServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	//**building request**
 	req := events.APIGatewayProxyRequest{
-		Body:           string(body),
-		Headers:        make(map[string]string),
-		HTTPMethod:     r.Method,
-		Path:           r.URL.Path,
-		PathParameters: make(map[string]string),
+		Body:                  string(body),
+		Headers:               make(map[string]string),
+		HTTPMethod:            r.Method,
+		Path:                  r.URL.Path,
+		QueryStringParameters: make(map[string]string),
 	}
 
 	//map raw request headers
@@ -168,7 +171,7 @@ func (l *LocalServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	//Map raw query params
 	for k, v := range queryParams {
-		req.PathParameters[strings.ToLower(k)] = v[0]
+		req.QueryStringParameters[strings.ToLower(k)] = v[0]
 	}
 
 	resp, err := Handler(r.Context(), req)

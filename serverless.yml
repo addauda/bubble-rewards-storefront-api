@@ -1,7 +1,7 @@
 service: bubble-rewards-storefront-api
 app: bubble-rewards-storefront-api
 tenant: ahmeddauda
-credentials: ${file(./creds.yml)}
+custom: ${file(creds.yml)}
 
 frameworkVersion: ">=1.28.0 <2.0.0"
 
@@ -10,24 +10,24 @@ provider:
   runtime: go1.x
   profile: serverless-agent-ahmed-aws-dev
   environment:
-    DB_HOST: ${self:credentials.DB_HOST}
-    DB_USER: ${self:credentials.DB_USER}
-    DB_PASSWORD: ${self:credentials.DB_PASSWORD}
-    DB_NAME: ${self:credentials.DB_NAME}
+    DB_HOST: ${self:custom.DB_HOST}
+    DB_USER: ${self:custom.DB_USER}
+    DB_PASSWORD: ${self:custom.DB_PASSWORD}
+    DB_NAME: ${self:custom.DB_NAME}
 
 functions:
   validateCode:
     handler: bin/validateCode
     events:
       - http:
-          path: validate/code
+          path: validate
           method: get
           request:
             parameters:
               querystrings:
                 code: true
                 redemption_type: true
-                key: true
+                api_key: true
 package:
  exclude:
    - ./**
