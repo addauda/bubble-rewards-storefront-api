@@ -44,7 +44,6 @@ DB_HOST: XXX
 DB_USER: XXX
 DB_PASSWORD: XXX
 DB_NAME: XXX
-
 ```
 
 ### Dev
