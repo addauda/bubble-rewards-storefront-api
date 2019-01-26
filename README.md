@@ -12,7 +12,7 @@ authorAvatar: 'https://avatars0.githubusercontent.com/u/3159454?v=4&s=140'
 
 ## Endpoints
 ---
-**validateCode** - checks to see whether a coupon code or instagram account name is valid
+**validate** - checks to see whether a coupon code or instagram account name is valid
 
 | Verb | Endpoint |
 | ----------- | ----------- |

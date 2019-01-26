@@ -1,6 +1,7 @@
 build:
 	dep ensure -v
-	env GOOS=linux go build -ldflags="-s -w" -o bin/validateCode validateCode/main.go
+	env GOOS=linux go build -ldflags="-s -w" -o bin/validate validate/main.go
+	env GOOS=linux go build -ldflags="-s -w" -o bin/redeem redeem/main.go
 
 .PHONY: clean
 clean:

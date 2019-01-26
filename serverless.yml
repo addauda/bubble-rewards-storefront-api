@@ -16,8 +16,8 @@ provider:
     DB_NAME: ${self:custom.DB_NAME}
 
 functions:
-  validateCode:
-    handler: bin/validateCode
+  validate:
+    handler: bin/validate
     events:
       - http:
           path: validate
@@ -26,6 +26,18 @@ functions:
             parameters:
               querystrings:
                 code: true
+                redemption_type: true
+                api_key: true
+  redeem:
+    handler: bin/redeem
+    events:
+      - http:
+          path: redeem
+          method: get
+          request:
+            parameters:
+              querystrings:
+                id: true
                 redemption_type: true
                 api_key: true
 package:

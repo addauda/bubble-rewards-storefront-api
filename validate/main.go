@@ -31,7 +31,7 @@ func GenerateCouponCodeQuery() string {
 	return "SELECT redemptions_coupon.id, submissions.instagram_account, rewards.description, redemptions_coupon.status from public.redemptions_coupon join submissions on redemptions_coupon.submission_id = submissions.id join offers on submissions.offer_id = offers.id join rewards on offers.loyalty_reward_id = rewards.id WHERE code = $1 AND redemptions_coupon.status = 'PENDING' AND current_timestamp < redemptions_coupon.expire_at"
 }
 
-func GenerateInstantAccountQuery() string {
+func GenerateInstantQuery() string {
 	return "SELECT submissions.id, submissions.instagram_account, rewards.description from submissions join offers on submissions.offer_id = offers.id join rewards on offers.instant_reward_id = rewards.id WHERE submissions.instagram_account = $1 AND submissions.status = 'ACCEPTED' AND current_timestamp < submissions.instant_reward_expire_at LIMIT 1"
 }
 
@@ -41,10 +41,6 @@ func Handler(ctx context.Context, request events.APIGatewayProxyRequest) (Respon
 	code := request.QueryStringParameters["code"]
 	redemptionType := request.QueryStringParameters["redemption_type"]
 	apiKey := request.QueryStringParameters["api_key"]
-
-	log.Printf("Info: Request code %s", code)
-	log.Printf("Info: Request redemption type %s", redemptionType)
-	log.Printf("Info: Request API key %s", apiKey)
 
 	// Ensure all fields are not empty
 	if code != "" && redemptionType != "" && apiKey != "" {
@@ -88,10 +84,10 @@ func Handler(ctx context.Context, request events.APIGatewayProxyRequest) (Respon
 			row := db.QueryRow(GenerateCouponCodeQuery(), code)
 			switch err = row.Scan(&redemptionID, &instagramAccount, &rewardDescription, &redemptionStatus); err {
 			case sql.ErrNoRows:
-				log.Printf("Error: Redemption code [%s] is INVALID", code)
+				log.Printf("Error: Redemption code [%s] NOT FOUND", code)
 				return Response{StatusCode: 404}, nil
 			case nil:
-				log.Printf("Sucess: Redemption code [%s] is VALID", code)
+				log.Printf("Success: Redemption code [%s] FOUND", code)
 
 				//Generate message that want to be sent as body
 				message := fmt.Sprintf(" { \"redemptionID\" : \"%d\", \"instagramAccount\" : \"%s\", \"rewardDescription\" : \"%s\", \"redemptionStatus\" : \"%s\" } ", redemptionID, instagramAccount, rewardDescription, redemptionStatus)
@@ -102,18 +98,18 @@ func Handler(ctx context.Context, request events.APIGatewayProxyRequest) (Respon
 				log.Printf("Error: %v", err)
 				return Response{StatusCode: 500}, nil
 			}
-		} else if redemptionType == "INSTAGRAM" {
+		} else if redemptionType == "INSTANT" {
 			log.Printf("Info: Validating redemption type [%s]", redemptionType)
 			var submissionID int
 			var instagramAccount string
 			var rewardDescription string
-			row := db.QueryRow(GenerateInstantAccountQuery(), code)
+			row := db.QueryRow(GenerateInstantQuery(), code)
 			switch err = row.Scan(&submissionID, &instagramAccount, &rewardDescription); err {
 			case sql.ErrNoRows:
-				log.Printf("Error: Redemption code [%s] is INVALID", code)
+				log.Printf("Error: Redemption code [%s] NOT FOUND", code)
 				return Response{StatusCode: 404}, nil
 			case nil:
-				log.Printf("Sucess: Redemption code [%s] is VALID", code)
+				log.Printf("Success: Redemption code [%s] FOUND", code)
 
 				//Generate message that want to be sent as body
 				message := fmt.Sprintf(" { \"submissionId\" : \"%d\", \"instagramAccount\" : \"%s\", \"rewardDescription\" : \"%s\" } ", submissionID, instagramAccount, rewardDescription)
