@@ -10,14 +10,14 @@ authorName: 'Sebastian Borza'
 authorAvatar: 'https://avatars0.githubusercontent.com/u/3159454?v=4&s=140'
 -->
 
-# Endpoints
-
-## **validateCode** - checks to see whether a coupon code or instagram account name is valid
+## Endpoints
+---
+**validateCode** - checks to see whether a coupon code or instagram account name is valid
 | Verb | Endpoint |
 | ----------- | ----------- |
 | **GET** | `/validate?code={code}&redemption_type={redemption_type}&api_key={api_key}`|
 
-### Responses
+Responses
 | Status Code | Reason |
 | ----------- | ----------- |
 | 200 OK | Valid redemption code |
@@ -25,15 +25,13 @@ authorAvatar: 'https://avatars0.githubusercontent.com/u/3159454?v=4&s=140'
 | 401 Unauthorized | Invalid API key |
 | 404 Not Found | Invalid redemption code |
 | 500 Server Error | Internal server error |
-
 ---
-
-## **redeem** - redeems instant reward or coupon code
+**redeem** - redeems instant reward or coupon code
 | Verb | Endpoint |
 | ----------- | ----------- |
 | **GET** | `/redeem?id={id}&redemption_type={redemption_type}&api_key={api_key}`|
 
-# Deployment
+## Deployment
 
 Add file `creds.yml` to root of project folder with the following credentials:
 ```
