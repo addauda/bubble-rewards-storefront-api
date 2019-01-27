@@ -56,7 +56,12 @@ func Handler(ctx context.Context, request events.APIGatewayProxyRequest) (Respon
 		db, err := sql.Open("postgres", connStr)
 		if err != nil {
 			log.Printf("Error: %v", err)
-			return Response{StatusCode: 500}, nil
+			return Response{StatusCode: 500,
+				Headers: map[string]string{
+					"Access-Control-Allow-Origin":      "*",
+					"Access-Control-Allow-Credentials": "true",
+				},
+			}, nil
 		}
 
 		// Validate API key
@@ -66,12 +71,22 @@ func Handler(ctx context.Context, request events.APIGatewayProxyRequest) (Respon
 		switch err = row.Scan(&storeID, &storeName); err {
 		case sql.ErrNoRows:
 			log.Printf("Error: No store with API key [%s] was found", apiKey)
-			return Response{StatusCode: 401}, nil
+			return Response{StatusCode: 401,
+				Headers: map[string]string{
+					"Access-Control-Allow-Origin":      "*",
+					"Access-Control-Allow-Credentials": "true",
+				},
+			}, nil
 		case nil:
 			log.Printf("Info: Retreived store as [%s]", storeName)
 		default:
 			log.Printf("Error: %v", err)
-			return Response{StatusCode: 500}, nil
+			return Response{StatusCode: 500,
+				Headers: map[string]string{
+					"Access-Control-Allow-Origin":      "*",
+					"Access-Control-Allow-Credentials": "true",
+				},
+			}, nil
 		}
 
 		// Redeem a coupon code
@@ -84,7 +99,12 @@ func Handler(ctx context.Context, request events.APIGatewayProxyRequest) (Respon
 			switch err = row.Scan(&redemptionID, &redemptionCode, &redemptionTime); err {
 			case sql.ErrNoRows:
 				log.Printf("Error: Coupon ID [%s] NOT FOUND", id)
-				return Response{StatusCode: 404}, nil
+				return Response{StatusCode: 404,
+					Headers: map[string]string{
+						"Access-Control-Allow-Origin":      "*",
+						"Access-Control-Allow-Credentials": "true",
+					},
+				}, nil
 			case nil:
 				log.Printf("Success: Redeemed code [%s]", redemptionCode)
 
@@ -92,10 +112,22 @@ func Handler(ctx context.Context, request events.APIGatewayProxyRequest) (Respon
 				message := fmt.Sprintf(" { \"redemptionID\" : \"%d\", \"redemptionCode\" : \"%s\", \"redemptionTime\" : \"%s\" } ", redemptionID, redemptionCode, redemptionTime)
 
 				//Returning response with AWS Lambda Proxy Response
-				return Response{Body: message, StatusCode: 200}, nil
+				return Response{StatusCode: 200,
+					Body: message,
+					Headers: map[string]string{
+						"Access-Control-Allow-Origin":      "*",
+						"Access-Control-Allow-Credentials": "true",
+					},
+				}, nil
+
 			default:
 				log.Printf("Error: %v", err)
-				return Response{StatusCode: 500}, nil
+				return Response{StatusCode: 500,
+					Headers: map[string]string{
+						"Access-Control-Allow-Origin":      "*",
+						"Access-Control-Allow-Credentials": "true",
+					},
+				}, nil
 			}
 		} else if redemptionType == "INSTANT" {
 			log.Printf("Info: Redeeming type [%s]", redemptionType)
@@ -106,7 +138,12 @@ func Handler(ctx context.Context, request events.APIGatewayProxyRequest) (Respon
 			switch err = row.Scan(&redemptionID, &submissionID, &redemptionTime); err {
 			case sql.ErrNoRows:
 				log.Printf("Error: Submission ID [%s] NOT FOUND", id)
-				return Response{StatusCode: 404}, nil
+				return Response{StatusCode: 404,
+					Headers: map[string]string{
+						"Access-Control-Allow-Origin":      "*",
+						"Access-Control-Allow-Credentials": "true",
+					},
+				}, nil
 			case nil:
 				log.Printf("Success: Redeemed submission [%d]", submissionID)
 
@@ -114,20 +151,42 @@ func Handler(ctx context.Context, request events.APIGatewayProxyRequest) (Respon
 				message := fmt.Sprintf(" { \"redemptionID\" : \"%d\", \"submissionId\" : \"%d\", \"redemptionTime\" : \"%s\" } ", redemptionID, submissionID, redemptionTime)
 
 				//Returning response with AWS Lambda Proxy Response
-				return Response{Body: message, StatusCode: 200}, nil
+				return Response{StatusCode: 200,
+					Body: message,
+					Headers: map[string]string{
+						"Access-Control-Allow-Origin":      "*",
+						"Access-Control-Allow-Credentials": "true",
+					},
+				}, nil
+
 			default:
 				log.Printf("Error: %v", err)
-				return Response{StatusCode: 500}, nil
+				return Response{StatusCode: 500,
+					Headers: map[string]string{
+						"Access-Control-Allow-Origin":      "*",
+						"Access-Control-Allow-Credentials": "true",
+					},
+				}, nil
 			}
 		} else {
 			log.Printf("Error: Invalid redemption type [%s]", redemptionType)
-			return Response{StatusCode: 400}, nil
+			return Response{StatusCode: 400,
+				Headers: map[string]string{
+					"Access-Control-Allow-Origin":      "*",
+					"Access-Control-Allow-Credentials": "true",
+				},
+			}, nil
 		}
 	}
 
 	// Missing one of required parameters
 	log.Printf("Error: Request missing a required parameter")
-	return Response{StatusCode: 400}, nil
+	return Response{StatusCode: 400,
+		Headers: map[string]string{
+			"Access-Control-Allow-Origin":      "*",
+			"Access-Control-Allow-Credentials": "true",
+		},
+	}, nil
 }
 
 type LocalServer struct{}

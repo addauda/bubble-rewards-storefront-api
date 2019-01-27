@@ -56,7 +56,13 @@ func Handler(ctx context.Context, request events.APIGatewayProxyRequest) (Respon
 		db, err := sql.Open("postgres", connStr)
 		if err != nil {
 			log.Printf("Error: %v", err)
-			return Response{StatusCode: 500}, nil
+			return Response{StatusCode: 500,
+				Body: "{}",
+				Headers: map[string]string{
+					"Access-Control-Allow-Origin":      "*",
+					"Access-Control-Allow-Credentials": "true",
+				},
+			}, nil
 		}
 
 		// Validate API key
@@ -66,12 +72,22 @@ func Handler(ctx context.Context, request events.APIGatewayProxyRequest) (Respon
 		switch err = row.Scan(&storeID, &storeName); err {
 		case sql.ErrNoRows:
 			log.Printf("Error: No store with API key [%s] was found", apiKey)
-			return Response{StatusCode: 401}, nil
+			return Response{StatusCode: 401,
+				Headers: map[string]string{
+					"Access-Control-Allow-Origin":      "*",
+					"Access-Control-Allow-Credentials": "true",
+				},
+			}, nil
 		case nil:
 			log.Printf("Info: Retreived store as [%s]", storeName)
 		default:
 			log.Printf("Error: %v", err)
-			return Response{StatusCode: 500}, nil
+			return Response{StatusCode: 500,
+				Headers: map[string]string{
+					"Access-Control-Allow-Origin":      "*",
+					"Access-Control-Allow-Credentials": "true",
+				},
+			}, nil
 		}
 
 		// Redeem a coupon code
@@ -85,18 +101,35 @@ func Handler(ctx context.Context, request events.APIGatewayProxyRequest) (Respon
 			switch err = row.Scan(&redemptionID, &instagramAccount, &rewardDescription, &redemptionStatus); err {
 			case sql.ErrNoRows:
 				log.Printf("Error: Redemption code [%s] NOT FOUND", code)
-				return Response{StatusCode: 404}, nil
+				return Response{StatusCode: 404,
+					Headers: map[string]string{
+						"Access-Control-Allow-Origin":      "*",
+						"Access-Control-Allow-Credentials": "true",
+					},
+				}, nil
 			case nil:
 				log.Printf("Success: Redemption code [%s] FOUND", code)
 
 				//Generate message that want to be sent as body
-				message := fmt.Sprintf(" { \"redemptionID\" : \"%d\", \"instagramAccount\" : \"%s\", \"rewardDescription\" : \"%s\", \"redemptionStatus\" : \"%s\" } ", redemptionID, instagramAccount, rewardDescription, redemptionStatus)
+				message := fmt.Sprintf(" { \"redemptionID\" : \"%d\", \"instagramAccount\" : \"%s\", \"rewardDescription\" : \"%s\", \"redemptionStatus\" : \"%s\", \"storeName\" : \"%s\" } ", redemptionID, instagramAccount, rewardDescription, redemptionStatus, storeName)
 
 				//Returning response with AWS Lambda Proxy Response
-				return Response{Body: message, StatusCode: 200}, nil
+				return Response{StatusCode: 200,
+					Body: message,
+					Headers: map[string]string{
+						"Access-Control-Allow-Origin":      "*",
+						"Access-Control-Allow-Credentials": "true",
+					},
+				}, nil
+
 			default:
 				log.Printf("Error: %v", err)
-				return Response{StatusCode: 500}, nil
+				return Response{StatusCode: 500,
+					Headers: map[string]string{
+						"Access-Control-Allow-Origin":      "*",
+						"Access-Control-Allow-Credentials": "true",
+					},
+				}, nil
 			}
 		} else if redemptionType == "INSTANT" {
 			log.Printf("Info: Validating redemption type [%s]", redemptionType)
@@ -107,7 +140,12 @@ func Handler(ctx context.Context, request events.APIGatewayProxyRequest) (Respon
 			switch err = row.Scan(&submissionID, &instagramAccount, &rewardDescription); err {
 			case sql.ErrNoRows:
 				log.Printf("Error: Redemption code [%s] NOT FOUND", code)
-				return Response{StatusCode: 404}, nil
+				return Response{StatusCode: 404,
+					Headers: map[string]string{
+						"Access-Control-Allow-Origin":      "*",
+						"Access-Control-Allow-Credentials": "true",
+					},
+				}, nil
 			case nil:
 				log.Printf("Success: Redemption code [%s] FOUND", code)
 
@@ -115,20 +153,42 @@ func Handler(ctx context.Context, request events.APIGatewayProxyRequest) (Respon
 				message := fmt.Sprintf(" { \"submissionId\" : \"%d\", \"instagramAccount\" : \"%s\", \"rewardDescription\" : \"%s\" } ", submissionID, instagramAccount, rewardDescription)
 
 				//Returning response with AWS Lambda Proxy Response
-				return Response{Body: message, StatusCode: 200}, nil
+				return Response{StatusCode: 200,
+					Body: message,
+					Headers: map[string]string{
+						"Access-Control-Allow-Origin":      "*",
+						"Access-Control-Allow-Credentials": "true",
+					},
+				}, nil
+
 			default:
 				log.Printf("Error: %v", err)
-				return Response{StatusCode: 500}, nil
+				return Response{StatusCode: 500,
+					Headers: map[string]string{
+						"Access-Control-Allow-Origin":      "*",
+						"Access-Control-Allow-Credentials": "true",
+					},
+				}, nil
 			}
 		} else {
 			log.Printf("Error: Invalid redemption type [%s]", redemptionType)
-			return Response{StatusCode: 400}, nil
+			return Response{StatusCode: 400,
+				Headers: map[string]string{
+					"Access-Control-Allow-Origin":      "*",
+					"Access-Control-Allow-Credentials": "true",
+				},
+			}, nil
 		}
 	}
 
 	// Missing one of required parameters
 	log.Printf("Error: Request missing a required parameter")
-	return Response{StatusCode: 400}, nil
+	return Response{StatusCode: 400,
+		Headers: map[string]string{
+			"Access-Control-Allow-Origin":      "*",
+			"Access-Control-Allow-Credentials": "true",
+		},
+	}, nil
 }
 
 type LocalServer struct{}

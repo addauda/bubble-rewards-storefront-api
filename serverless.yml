@@ -22,6 +22,7 @@ functions:
       - http:
           path: validate
           method: get
+          cors: true
           request:
             parameters:
               querystrings:
@@ -34,6 +35,7 @@ functions:
       - http:
           path: redeem
           method: get
+          cors: true
           request:
             parameters:
               querystrings:
