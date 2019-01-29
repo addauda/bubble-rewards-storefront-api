@@ -150,7 +150,7 @@ func Handler(ctx context.Context, request events.APIGatewayProxyRequest) (Respon
 				log.Printf("Success: Redemption code [%s] FOUND", code)
 
 				//Generate message that want to be sent as body
-				message := fmt.Sprintf(" { \"submissionId\" : \"%d\", \"instagramAccount\" : \"%s\", \"rewardDescription\" : \"%s\" } ", submissionID, instagramAccount, rewardDescription)
+				message := fmt.Sprintf(" { \"submissionId\" : \"%d\", \"instagramAccount\" : \"%s\", \"rewardDescription\" : \"%s\",  \"storeName\" : \"%s\" } ", submissionID, instagramAccount, rewardDescription, storeName)
 
 				//Returning response with AWS Lambda Proxy Response
 				return Response{StatusCode: 200,
@@ -254,6 +254,10 @@ func local() {
 func main() {
 	if os.Getenv("AWS_LAMBDA_FUNCTION_NAME") == "" {
 		//see local creds file for env vars
+		os.Setenv("DB_NAME", "bubble_rewards_db")
+		os.Setenv("DB_HOST", "bubble-rewards-platform-postgres-dev.cljutdr9re4x.us-east-2.rds.amazonaws.com")
+		os.Setenv("DB_PASSWORD", "4EGw!jQ4d%er6h")
+		os.Setenv("DB_USER", "brpostgresadmin")
 		local()
 	} else {
 		// Make the handler available for Remote Procedure Call by AWS Lambda
