@@ -8,6 +8,7 @@ frameworkVersion: ">=1.28.0 <2.0.0"
 provider:
   name: aws
   runtime: go1.x
+  region: us-east-2
   profile: serverless-agent-ahmed-aws-dev
   environment:
     DB_HOST: ${self:custom.DB_HOST}
@@ -41,6 +42,17 @@ functions:
               querystrings:
                 id: true
                 redemption_type: true
+                api_key: true
+  heartbeat:
+    handler: bin/heartbeat
+    events:
+      - http:
+          path: heartbeat
+          method: get
+          cors: true
+          request:
+            parameters:
+              querystrings:
                 api_key: true
 package:
  exclude:
