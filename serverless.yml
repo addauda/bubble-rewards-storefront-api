@@ -43,6 +43,17 @@ functions:
                 id: true
                 redemption_type: true
                 api_key: true
+  heartbeat:
+    handler: bin/heartbeat
+    events:
+      - http:
+          path: heartbeat
+          method: get
+          cors: true
+          request:
+            parameters:
+              querystrings:
+                api_key: true
 package:
  exclude:
    - ./**
