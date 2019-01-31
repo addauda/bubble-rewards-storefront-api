@@ -65,6 +65,8 @@ func Handler(ctx context.Context, request events.APIGatewayProxyRequest) (Respon
 			}, nil
 		}
 
+		defer db.Close()
+
 		// Validate API key
 		var storeID int
 		var storeName string
@@ -254,10 +256,6 @@ func local() {
 func main() {
 	if os.Getenv("AWS_LAMBDA_FUNCTION_NAME") == "" {
 		//see local creds file for env vars
-		os.Setenv("DB_NAME", "bubble_rewards_db")
-		os.Setenv("DB_HOST", "bubble-rewards-platform-postgres-dev.cljutdr9re4x.us-east-2.rds.amazonaws.com")
-		os.Setenv("DB_PASSWORD", "4EGw!jQ4d%er6h")
-		os.Setenv("DB_USER", "brpostgresadmin")
 		local()
 	} else {
 		// Make the handler available for Remote Procedure Call by AWS Lambda

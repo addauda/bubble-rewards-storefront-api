@@ -64,6 +64,8 @@ func Handler(ctx context.Context, request events.APIGatewayProxyRequest) (Respon
 			}, nil
 		}
 
+		defer db.Close()
+
 		// Validate API key
 		var storeID int
 		var storeName string
